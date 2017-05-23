@@ -28,7 +28,11 @@
 /* -------------------------------------------------------------------------- */
 #define GDT_COUNT 30
 
-#define GDT_IDX_NULL_DESC           0
+#define GDT_IDX_NULL_DESC       0
+#define GDT_IDX_CODE0_DESC      8
+#define GDT_IDX_DATA0_DESC      9
+#define GDT_IDX_CODE3_DESC      10
+#define GDT_IDX_DATA3_DESC      11
 
 /* Offsets en la gdt */
 /* -------------------------------------------------------------------------- */

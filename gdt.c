@@ -25,7 +25,70 @@ gdt_entry gdt[GDT_COUNT] = {
         (unsigned char)     0x00,           /* g            */
         (unsigned char)     0x00,           /* base[31:24]  */
     },
-    
+
+    [GDT_IDX_CODE0_DESC] = (gdt_entry) {
+        (unsigned short)    0x4c0c,         /* limit[0:15]  */ //Preguntar.
+        (unsigned short)    0x0000,         /* base[0:15]   */
+        (unsigned char)     0x00,           /* base[23:16]  */
+        (unsigned char)     0x0A,           /* type         */
+        (unsigned char)     0x01,           /* s            */
+        (unsigned char)     0x00,           /* dpl          */ //Level 0 Privilege Level
+        (unsigned char)     0x01,           /* p            */
+        (unsigned char)     0x00,           /* limit[16:19] */
+        (unsigned char)     0x00,           /* avl          */ //Available for system software - 0
+        (unsigned char)     0x00,           /* l            */
+        (unsigned char)     0x00,           /* db           */
+        (unsigned char)     0x01,           /* g            */
+        (unsigned char)     0x00,           /* base[31:24]  */
+    },
+
+    [GDT_IDX_DATA0_DESC] = (gdt_entry) {
+        (unsigned short)    0x4c0c,         /* limit[0:15]  */ //Preguntar.
+        (unsigned short)    0x0000,         /* base[0:15]   */
+        (unsigned char)     0x00,           /* base[23:16]  */
+        (unsigned char)     0x02,           /* type         */
+        (unsigned char)     0x01,           /* s            */
+        (unsigned char)     0x00,           /* dpl          */ //Level 0 Privilege Level
+        (unsigned char)     0x01,           /* p            */
+        (unsigned char)     0x00,           /* limit[16:19] */
+        (unsigned char)     0x00,           /* avl          */ //Available for system software - 0
+        (unsigned char)     0x00,           /* l            */
+        (unsigned char)     0x00,           /* db           */
+        (unsigned char)     0x01,           /* g            */
+        (unsigned char)     0x00,           /* base[31:24]  */
+    },
+
+    [GDT_IDX_CODE3_DESC] = (gdt_entry) {
+        (unsigned short)    0x4c0c,         /* limit[0:15]  */ //Preguntar.
+        (unsigned short)    0x0000,         /* base[0:15]   */
+        (unsigned char)     0x00,           /* base[23:16]  */
+        (unsigned char)     0x0A,           /* type         */
+        (unsigned char)     0x01,           /* s            */
+        (unsigned char)     0x00,           /* dpl          */ //Level 0 Privilege Level
+        (unsigned char)     0x01,           /* p            */
+        (unsigned char)     0x00,           /* limit[16:19] */
+        (unsigned char)     0x00,           /* avl          */ //Available for system software - 0
+        (unsigned char)     0x00,           /* l            */
+        (unsigned char)     0x00,           /* db           */
+        (unsigned char)     0x01,           /* g            */
+        (unsigned char)     0x00,           /* base[31:24]  */
+    },
+
+    [GDT_IDX_DATA3_DESC] = (gdt_entry) {
+        (unsigned short)    0x4c0c,         /* limit[0:15]  */ //Preguntar.
+        (unsigned short)    0x0000,         /* base[0:15]   */
+        (unsigned char)     0x00,           /* base[23:16]  */
+        (unsigned char)     0x02,           /* type         */
+        (unsigned char)     0x01,           /* s            */
+        (unsigned char)     0x00,           /* dpl          */ //Level 0 Privilege Level
+        (unsigned char)     0x01,           /* p            */
+        (unsigned char)     0x00,           /* limit[16:19] */
+        (unsigned char)     0x00,           /* avl          */ //Available for system software - 0
+        (unsigned char)     0x00,           /* l            */
+        (unsigned char)     0x00,           /* db           */
+        (unsigned char)     0x01,           /* g            */
+        (unsigned char)     0x00,           /* base[31:24]  */
+    },
 
 };
 
