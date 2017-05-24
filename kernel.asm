@@ -5,6 +5,8 @@
 
 %include "imprimir.mac"
 
+extern GDT_DESC
+
 global start
 
 
@@ -39,32 +41,40 @@ start:
 
     ; Imprimir mensaje de bienvenida
     imprimir_texto_mr iniciando_mr_msg, iniciando_mr_len, 0x07, 0, 0
-    
+
 
     ; Habilitar A20
-    
+    call habilitar_A20
     ; Cargar la GDT
-
+    lgdt [GDT_DESC]
     ; Setear el bit PE del registro CR0
-    
+    mov eax, cr0
+    or eax, 1
+    mov cr0, eax
     ; Saltar a modo protegido
-
+    jmp 0x08:modoprotegido
+    modoprotegido:
     ; Establecer selectores de segmentos
-
+    xor eax, eax
+    ; 0 a 1 va RPL (Requested Privileg Level) - 2 va (0 si es GDT - 1 si es LDT) - 3 a 15 Index
+    ; Indice 8, TI 0, RPL 0,    0000000001000000 en hexa = 0x0040
+    ; Indice 9 , TI 0, RPL 0,   0000000001001000 en hexa = 0x0048
+    ; Indice 10 , TI 0, RPL 3,  0000000001010010 en hexa = 0x0052
+    ; Indice 11 , TI 0, RPL 3,  0000000001011010 en hexa = 0x005A
     ; Establecer la base de la pila
-    
+
     ; Imprimir mensaje de bienvenida
 
     ; Inicializar pantalla
-    
+
     ; Inicializar el manejador de memoria
- 
+
     ; Inicializar el directorio de paginas
-    
+
     ; Cargar directorio de paginas
 
     ; Habilitar paginacion
-    
+
     ; Inicializar tss
 
     ; Inicializar tss de la tarea Idle
@@ -72,9 +82,9 @@ start:
     ; Inicializar el scheduler
 
     ; Inicializar la IDT
-    
+
     ; Cargar IDT
- 
+
     ; Configurar controlador de interrupciones
 
     ; Cargar tarea inicial
