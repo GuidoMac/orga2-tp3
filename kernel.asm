@@ -38,7 +38,6 @@ start:
     xor bx, bx
     mov ax, 1112h
     int 10h ; load 8x8 font
-
     ; Imprimir mensaje de bienvenida
     imprimir_texto_mr iniciando_mr_msg, iniciando_mr_len, 0x07, 0, 0
 
@@ -52,10 +51,15 @@ start:
     or eax, 1
     mov cr0, eax
     ; Saltar a modo protegido
+    ;xchg bx, bx
     jmp (8<<3):modoprotegido ; Aca seteo automaticamente el procesador el CS 
+    
+
+
     BITS 32
+    
     modoprotegido:
-    xchg bx, bx
+    
     ; Establecer selectores de segmentos
     xor eax, eax
     ; 0 a 1 va RPL (Requested Privileg Level) - 2 va (0 si es GDT - 1 si es LDT) - 3 a 15 Index
@@ -75,10 +79,13 @@ start:
     ; Establecer la base de la pila
     mov esp, 0x27000
     mov ebp, 0x27000
-    ; Imprimir mensaje de bienvenida
-    imprimir_texto_mp iniciando_mp_msg, iniciando_mp_len, 0x07, 0, 0
-    ; Inicializar pantalla
 
+
+
+    ; Imprimir mensaje de bienvenida
+    imprimir_texto_mp iniciando_mp_msg, iniciando_mp_len, 0x07, 2, 0
+    ; Inicializar pantalla
+    
     ; Inicializar el manejador de memoria
 
     ; Inicializar el directorio de paginas

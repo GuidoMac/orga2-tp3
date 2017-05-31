@@ -52,6 +52,18 @@ void print_int(unsigned int n, unsigned int x, unsigned int y, unsigned short at
 }
 
 
+void clean(unsigned short color) {
+    ca (*p)[VIDEO_COLS] = (ca (*)[VIDEO_COLS]) VIDEO; // magia
+    int f;
+    for(f = 0; f < VIDEO_FILS; f++) {
+        int c;
+        for(c = 0; c < VIDEO_COLS; c++) {
+            p[f][c].c = '0';
+            p[f][c].a = color;
+        }
+    }
+}
+
 
 
 
