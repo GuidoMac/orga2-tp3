@@ -187,7 +187,7 @@
 #cpu: model=core2_penryn_t9600, count=1, ips=50000000, reset_on_triple_fault=1, ignore_bad_msrs=1, msrs="msrs.def"
 #cpu: cpuid_limit_winnt=0
 
-cpu: count=1, ips=5000000, reset_on_triple_fault=0,  msrs="msrs.def"
+	cpu: count=1, ips=5000000, reset_on_triple_fault=0,  msrs="msrs.def"
 
 #=======================================================================
 # CPUID:
@@ -1185,7 +1185,7 @@ speaker: enabled=1, mode=sound
 # Example:
 #   magic_break: enabled=1
 #=======================================================================
-#magic_break: enabled=1
+magic_break: enabled=1
 
 #=======================================================================
 # DEBUG_SYMBOLS:
