@@ -1,0 +1,7 @@
+*.o
+*.bin
+*.tsk
+*.ctsk
+*.tsko
+*.img
+*.sym

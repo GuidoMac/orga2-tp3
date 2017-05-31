@@ -64,7 +64,7 @@ start:
     ; Establecer la base de la pila
 
     ; Imprimir mensaje de bienvenida
-
+    imprimir_texto_mr iniciando_mp_msg, iniciando_mp_len, 0x07, 0, 0
     ; Inicializar pantalla
 
     ; Inicializar el manejador de memoria
