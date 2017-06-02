@@ -26,6 +26,8 @@ void print_hex(unsigned int numero, int size, unsigned int x, unsigned int y, un
 
 void print_int(unsigned int n, unsigned int x, unsigned int y, unsigned short attr);
 
-void clean(unsigned short color);
+void clean_screen();
+
+void print_color(unsigned short color,  unsigned int x,  unsigned int xLim,  unsigned int y, unsigned int yLim);
 
 #endif  /* !__SCREEN_H__ */

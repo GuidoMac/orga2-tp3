@@ -52,12 +52,24 @@ void print_int(unsigned int n, unsigned int x, unsigned int y, unsigned short at
 }
 
 
-void clean(unsigned short color) {
+void clean_screen() {
     ca (*p)[VIDEO_COLS] = (ca (*)[VIDEO_COLS]) VIDEO; // magia
     int f;
     for(f = 0; f < VIDEO_FILS; f++) {
         int c;
         for(c = 0; c < VIDEO_COLS; c++) {
+            p[f][c].c = ' ';
+            p[f][c].a = C_BG_BLACK;
+        }
+    }
+}
+
+void print_color(unsigned short color,  unsigned int x,  unsigned int xLim,  unsigned int y, unsigned int yLim){
+    ca (*p)[VIDEO_COLS] = (ca (*)[VIDEO_COLS]) VIDEO; // magia
+    int f;
+    for(f = x; f < xLim; f++) {
+        int c;
+        for(c = y; c < yLim; c++) {
             p[f][c].c = '0';
             p[f][c].a = color;
         }

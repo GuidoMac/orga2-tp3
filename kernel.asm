@@ -6,7 +6,10 @@
 %include "imprimir.mac"
 
 extern GDT_DESC
-
+extern clean_screen
+extern mmu_inicializar_dir_kernel
+extern mmu_inicializar
+extern mmu_directorios
 global start
 
 
@@ -85,15 +88,18 @@ start:
     ; Imprimir mensaje de bienvenida
     imprimir_texto_mp iniciando_mp_msg, iniciando_mp_len, 0x07, 2, 0
     ; Inicializar pantalla
-    
-    ; Inicializar el manejador de memoria
+    call clean_screen
+    ; Inicializar el manejador de memoria  
 
+    call mmu_inicializar
     ; Inicializar el directorio de paginas
-
+    call mmu_inicializar_dir_kernel
+    
     ; Cargar directorio de paginas
-
+    call mmu_directorios
     ; Habilitar paginacion
-
+    
+    
     ; Inicializar tss
 
     ; Inicializar tss de la tarea Idle
