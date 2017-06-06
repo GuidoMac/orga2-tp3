@@ -90,16 +90,17 @@ start:
     ; Inicializar pantalla
     call clean_screen
     ; Inicializar el manejador de memoria  
-
     call mmu_inicializar
     ; Inicializar el directorio de paginas
     call mmu_inicializar_dir_kernel
-    
     ; Cargar directorio de paginas
     call mmu_directorios
     ; Habilitar paginacion
-    
-    
+    mov eax, 0x27000
+    mov cr3, eax
+    mov eax, cr0
+    or eax, 0x80000000
+    mov cr0, eax
     ; Inicializar tss
 
     ; Inicializar tss de la tarea Idle

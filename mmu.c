@@ -7,7 +7,7 @@
 
 #include "mmu.h"
 
-void mmu_inicializar_dir_kernel(int * dir_page_directory) {
+void mmu_inicializar_dir_kernel() {
 
 //	unsigned int* pepe =  (int*)(0x27000) 
 
