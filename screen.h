@@ -30,4 +30,9 @@ void clean_screen();
 
 void print_color(unsigned short color,  unsigned int x,  unsigned int xLim,  unsigned int y, unsigned int yLim);
 
+void paint_screen(unsigned short color);
+
+int video_cols();
+int video_fils();
+
 #endif  /* !__SCREEN_H__ */

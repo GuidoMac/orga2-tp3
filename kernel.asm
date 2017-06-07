@@ -6,10 +6,20 @@
 %include "imprimir.mac"
 
 extern GDT_DESC
+extern IDT_DESC
+extern idt_inicializar
+extern video_cols
+extern video_fils
 extern clean_screen
+extern paint_screen
+extern print
+extern print_color
 extern mmu_inicializar_dir_kernel
 extern mmu_inicializar
 extern mmu_directorios
+extern mmu_proxima_pagina_fisica_libre
+extern mmu_mappear_pagina
+extern mmu_desmappear_pagina
 global start
 
 
@@ -24,6 +34,9 @@ iniciando_mr_len equ    $ - iniciando_mr_msg
 
 iniciando_mp_msg db     'Iniciando kernel (Modo Protegido)...'
 iniciando_mp_len equ    $ - iniciando_mp_msg
+
+nombre_equipo db        'No nos gusta adasdada...'
+nombre_equipo_len equ   $ - nombre_equipo
 
 ;;
 ;; Seccion de código.
@@ -94,13 +107,14 @@ start:
     ; Inicializar el directorio de paginas
     call mmu_inicializar_dir_kernel
     ; Cargar directorio de paginas
-    call mmu_directorios
+    ;call mmu_directorios
     ; Habilitar paginacion
     mov eax, 0x27000
     mov cr3, eax
     mov eax, cr0
     or eax, 0x80000000
     mov cr0, eax
+
     ; Inicializar tss
 
     ; Inicializar tss de la tarea Idle
@@ -108,14 +122,112 @@ start:
     ; Inicializar el scheduler
 
     ; Inicializar la IDT
-
+    call idt_inicializar
     ; Cargar IDT
-
+    lidt [IDT_DESC]
+    
     ; Configurar controlador de interrupciones
 
     ; Cargar tarea inicial
 
     ; Habilitar interrupciones
+    ;int 13
+    ;xchg bx, bx
+    ;sti
+    ;INICIALIZACION DE PANTALLA
+    
+    push 0x70
+    call paint_screen ;PINTAMOS LA PANTALLA DE VERDE
+    xchg bx, bx
+    ;PINTAMOS EL EXTREMO IZQUIERDO DE ROJO
+    call video_fils
+    push eax ; yLim
+    push 0 ; y
+    push 1 ; xLim
+    push 0 ; x
+    push 0x40 ;color        
+    call print_color
+    
+    ;PINTAMOS EL EXTREMO DERECHO DE AZUL
+    call video_fils
+    push eax ; yLim
+    push 0 ; y
+    call video_cols
+    push eax; xLim
+    sub eax, 1
+    push eax; x
+    push 0x10 ;color        
+    call print_color
+    
+
+    ;PINTAMOS EL EXTREMO SUPERIOR DE NEGRO
+    push 1 ; yLim
+    push 0 ; y
+    call video_cols
+    push eax ; xLim
+    push 0 ; x
+    push 0x60 ;color        
+    call print_color
+
+    ;PINTAMOS EL EXTREMO INFERIOR DE NEGRO 5 PIXELS
+    call video_fils
+    push eax ; yLim
+    sub eax, 5
+    push eax ; yLim
+    call video_cols
+    push eax; xLim
+    push 0; x
+    push 0x60; color
+    call print_color
+
+    call video_fils
+    push eax ; yLim
+    sub eax, 5
+    push eax ; yLim
+    call video_cols
+    shr eax, 1
+    push eax; xLim
+    sub eax, 5
+    push eax; x
+    push 0x40; color
+    call print_color
+
+    call video_fils
+    push eax ; yLim
+    sub eax, 5
+    push eax ; yLim
+    call video_cols
+    shr eax, 1
+    add eax, 5
+    push eax; xLim
+    sub eax, 5
+    push eax; x
+    push 0x10; color
+    call print_color    
+
+    ;IMPRIMOS EL NOMBRE DEL EQUIPO
+    call video_cols ; eax <- VIDEO_COLS
+    sub eax, nombre_equipo_len ; calculamos el offset a derecha del texto a imprimir
+    imprimir_texto_mp nombre_equipo, nombre_equipo_len, 0x05, 0, eax ; imprimos el texto con fondo verde y letra magenta
+
+    ;PROBAR MMU
+    ;call mmu_inicializar
+    call mmu_proxima_pagina_fisica_libre
+    ;xchg bx, bx
+    push 0x55123
+    push 0x27000
+    push 0x400000
+    call mmu_mappear_pagina
+    ;xchg bx, bx
+    ;SI HACES INFO TAB 
+    ;DEBERIA HABER UN RENGLON QUE DICE 0x00400000-0x00400fff -> 0x000000055000-0x000000055fff
+    push 0x27000
+    push 0x400000
+    call mmu_desmappear_pagina
+    ;xchg bx, bx
+    ;SI HACES INFO TAB 
+    ;NO DEBERIA HABER UN RENGLON QUE DICE 0x00400000-0x00400fff -> 0x000000055000-0x000000055fff
+
 
     ; Saltar a la primera tarea: Idle
 

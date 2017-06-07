@@ -6,6 +6,9 @@
 
 %include "imprimir.mac"
 
+interrupcion db        'Algo...'
+interrupcion_len equ   $ - interrupcion
+
 BITS 32
 
 sched_tarea_offset:     dd 0x00
@@ -16,7 +19,14 @@ extern fin_intr_pic1
 
 ;; Sched
 extern sched_proximo_indice
+extern tick
+extern keyword
+extern software
 
+
+global _isr31
+global _isr32
+global _isr33
 ;;
 ;; Definición de MACROS
 ;; -------------------------------------------------------------------------- ;;
@@ -26,6 +36,7 @@ global _isr%1
 
 _isr%1:
     mov eax, %1
+    imprimir_texto_mp interrupcion, interrupcion_len, 0x07, 2, 0
     jmp $
 
 %endmacro
@@ -41,18 +52,53 @@ isrClock:            db '|/-\'
 ;; Rutina de atención de las EXCEPCIONES
 ;; -------------------------------------------------------------------------- ;;
 ISR 0
-
+ISR 1
+ISR 2
+ISR 3
+ISR 4
+ISR 5
+ISR 6
+ISR 7
+ISR 8
+ISR 9
+ISR 10
+ISR 11
+ISR 12
+ISR 13
+ISR 14
+ISR 15
+ISR 16
+ISR 17
+ISR 18
+ISR 19
 ;;
 ;; Rutina de atención del RELOJ
 ;; -------------------------------------------------------------------------- ;;
-
+_isr31:
+    pushad
+    call tick
+    popad
+    iret
 ;;
 ;; Rutina de atención del TECLADO
 ;; -------------------------------------------------------------------------- ;;
-
+_isr32:
+    pushad
+    xor eax, eax
+    in al, 0x60
+    push eax
+    call keyword
+    pop eax
+    popad
+    iret
 ;;
 ;; Rutinas de atención de las SYSCALLS
 ;; -------------------------------------------------------------------------- ;;
+_isr33: 
+    pushad
+    call software
+    popad
+    iret
 
 %define IZQ 0xAAA
 %define DER 0x441

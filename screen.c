@@ -67,13 +67,25 @@ void clean_screen() {
 void print_color(unsigned short color,  unsigned int x,  unsigned int xLim,  unsigned int y, unsigned int yLim){
     ca (*p)[VIDEO_COLS] = (ca (*)[VIDEO_COLS]) VIDEO; // magia
     int f;
-    for(f = x; f < xLim; f++) {
+    for(f = y; f < yLim; f++) {
         int c;
-        for(c = y; c < yLim; c++) {
-            p[f][c].c = '0';
+        for(c = x; c < xLim; c++) {
+            p[f][c].c = ' ';
             p[f][c].a = color;
         }
     }
+}
+
+void paint_screen(unsigned short color) {
+    print_color(color, 0,VIDEO_COLS, 0, VIDEO_FILS);
+}
+
+
+int video_cols() {
+    return VIDEO_COLS;
+}
+int video_fils() {
+    return VIDEO_FILS;
 }
 
 

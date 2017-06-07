@@ -6,6 +6,7 @@
 */
 
 #include "mmu.h"
+unsigned int proxima_pagina_libre;
 
 void mmu_inicializar_dir_kernel() {
 
@@ -59,10 +60,70 @@ void mmu_inicializar_dir_kernel() {
 
 }
 
-void mmu_inicializar() {
 
+void mmu_inicializar() {
+	proxima_pagina_libre = INICIO_PAGINAS_LIBRES;
 }
 
+unsigned int mmu_proxima_pagina_fisica_libre() {
+	unsigned int pagina_libre = proxima_pagina_libre;
+	proxima_pagina_libre += PAGE_SIZE;
+	return pagina_libre;
+}
+
+void mmu_mappear_pagina(unsigned int virtual, unsigned int dir_pd, unsigned int fisica) {
+	pde_t* pd = (pde_t*) dir_pd;
+	// TO-DO: MACRO
+	unsigned int indice_directorio = PDE_INDEX(virtual);
+	unsigned int indice_tabla = PTE_INDEX(virtual);
+	if(pd[indice_directorio].base == 0) {
+		pte_t pte[0x1000];
+		
+		pd[indice_directorio].base = (int)(&pte[0])  >> 12;
+		pd[indice_directorio].p = 1;
+		int i;
+		for(i = 0; i < 0x1000; i++) {
+			pte[i].base = 0;
+			pte[i].p = 0;
+			pte[i].rw = 0;
+			pte[i].us = 0;
+			pte[i].pwt = 0;
+			pte[i].pcd = 0;
+			pte[i].a = 0;
+			pte[i].d = 0;
+			pte[i].pat = 0;
+			pte[i].g = 0;
+		}
+	}
+	pte_t* pte = (pte_t*)(pd[indice_directorio].base << 12);
+	pte[indice_tabla].base = fisica >> 12;
+	pte[indice_tabla].p = 1;
+	pte[indice_tabla].rw = 1;
+	pte[indice_tabla].us = 0;
+	pte[indice_tabla].pwt = 0;
+	pte[indice_tabla].pcd = 0;
+	pte[indice_tabla].a = 0;
+	pte[indice_tabla].d = 0;
+	pte[indice_tabla].pat = 0;
+	pte[indice_tabla].g = 0;
+}
+
+void mmu_desmappear_pagina(unsigned int virtual, unsigned int dir_pd) {
+	pde_t* pd = (pde_t*) dir_pd;
+	unsigned int indice_directorio = PDE_INDEX(virtual);
+	unsigned int indice_tabla = PTE_INDEX(virtual);
+	pte_t* pte = (pte_t*)(pd[indice_directorio].base << 12);
+	pte[indice_tabla].base = 0;
+	pte[indice_tabla].p = 0;
+	pte[indice_tabla].rw = 0;
+	pte[indice_tabla].us = 0;
+	pte[indice_tabla].pwt = 0;
+	pte[indice_tabla].pcd = 0;
+	pte[indice_tabla].a = 0;
+	pte[indice_tabla].d = 0;
+	pte[indice_tabla].pat = 0;
+	pte[indice_tabla].g = 0;
+}
 
 
 void mmu_directorios() {
