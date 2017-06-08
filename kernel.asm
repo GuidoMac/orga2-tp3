@@ -14,6 +14,8 @@ extern clean_screen
 extern paint_screen
 extern print
 extern print_color
+extern resetear_pic
+extern habilitar_pic
 extern mmu_inicializar_dir_kernel
 extern mmu_inicializar
 extern mmu_directorios
@@ -68,21 +70,21 @@ start:
     mov cr0, eax
     ; Saltar a modo protegido
     ;xchg bx, bx
-    jmp (8<<3):modoprotegido ; Aca seteo automaticamente el procesador el CS 
-    
+    jmp (8<<3):modoprotegido ; Aca seteo automaticamente el procesador el CS
+
 
 
     BITS 32
-    
+
     modoprotegido:
-    
+
     ; Establecer selectores de segmentos
     xor eax, eax
     ; 0 a 1 va RPL (Requested Privileg Level) - 2 va (0 si es GDT - 1 si es LDT) - 3 a 15 Index
     ; Indice 8, TI 0, RPL 0,    0000000001000/000 en hexa = 0x0040
     ; Indice 9 , TI 0, RPL 0,   0000000001001/000 en hexa = 0x0048  -> Este es el de data, hay que mover ds ahi
-    ; Indice 10 , TI 0, RPL 3,  0000000001010/011 en hexa = 
-    ; Indice 11 , TI 0, RPL 3,  0000000001011/011 en hexa = 
+    ; Indice 10 , TI 0, RPL 3,  0000000001010/011 en hexa =
+    ; Indice 11 , TI 0, RPL 3,  0000000001011/011 en hexa =
     ; Indice 12 , TI 0, RPL 0,  0000000001100/000 en hexa = 0x0060 -> VIDEO
     mov ax, 0x48
     mov ds, ax
@@ -102,7 +104,7 @@ start:
     imprimir_texto_mp iniciando_mp_msg, iniciando_mp_len, 0x07, 2, 0
     ; Inicializar pantalla
     call clean_screen
-    ; Inicializar el manejador de memoria  
+    ; Inicializar el manejador de memoria
     call mmu_inicializar
     ; Inicializar el directorio de paginas
     call mmu_inicializar_dir_kernel
@@ -125,8 +127,14 @@ start:
     call idt_inicializar
     ; Cargar IDT
     lidt [IDT_DESC]
-    
+
     ; Configurar controlador de interrupciones
+      call resetear_pic
+      call habilitar_pic
+
+      sti
+
+
 
     ; Cargar tarea inicial
 
@@ -135,7 +143,7 @@ start:
     ;xchg bx, bx
     ;sti
     ;INICIALIZACION DE PANTALLA
-    
+
     push 0x70
     call paint_screen ;PINTAMOS LA PANTALLA DE VERDE
     xchg bx, bx
@@ -145,9 +153,9 @@ start:
     push 0 ; y
     push 1 ; xLim
     push 0 ; x
-    push 0x40 ;color        
+    push 0x40 ;color
     call print_color
-    
+
     ;PINTAMOS EL EXTREMO DERECHO DE AZUL
     call video_fils
     push eax ; yLim
@@ -156,9 +164,9 @@ start:
     push eax; xLim
     sub eax, 1
     push eax; x
-    push 0x10 ;color        
+    push 0x10 ;color
     call print_color
-    
+
 
     ;PINTAMOS EL EXTREMO SUPERIOR DE NEGRO
     push 1 ; yLim
@@ -166,7 +174,7 @@ start:
     call video_cols
     push eax ; xLim
     push 0 ; x
-    push 0x60 ;color        
+    push 0x60 ;color
     call print_color
 
     ;PINTAMOS EL EXTREMO INFERIOR DE NEGRO 5 PIXELS
@@ -203,7 +211,7 @@ start:
     sub eax, 5
     push eax; x
     push 0x10; color
-    call print_color    
+    call print_color
 
     ;IMPRIMOS EL NOMBRE DEL EQUIPO
     call video_cols ; eax <- VIDEO_COLS
@@ -219,13 +227,13 @@ start:
     push 0x400000
     call mmu_mappear_pagina
     ;xchg bx, bx
-    ;SI HACES INFO TAB 
+    ;SI HACES INFO TAB
     ;DEBERIA HABER UN RENGLON QUE DICE 0x00400000-0x00400fff -> 0x000000055000-0x000000055fff
     push 0x27000
     push 0x400000
     call mmu_desmappear_pagina
     ;xchg bx, bx
-    ;SI HACES INFO TAB 
+    ;SI HACES INFO TAB
     ;NO DEBERIA HABER UN RENGLON QUE DICE 0x00400000-0x00400fff -> 0x000000055000-0x000000055fff
 
 

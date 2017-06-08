@@ -24,9 +24,9 @@ extern keyword
 extern software
 
 
-global _isr31
 global _isr32
 global _isr33
+global _isr66
 ;;
 ;; Definición de MACROS
 ;; -------------------------------------------------------------------------- ;;
@@ -74,16 +74,19 @@ ISR 19
 ;;
 ;; Rutina de atención del RELOJ
 ;; -------------------------------------------------------------------------- ;;
-_isr31:
+_isr32:
     pushad
-    call tick
+    call fin_intr_pic1
+    xchg bx,bx
+    call proximo_reloj
     popad
     iret
 ;;
 ;; Rutina de atención del TECLADO
 ;; -------------------------------------------------------------------------- ;;
-_isr32:
+_isr33:
     pushad
+    call fin_intr_pic1
     xor eax, eax
     in al, 0x60
     push eax
@@ -94,7 +97,7 @@ _isr32:
 ;;
 ;; Rutinas de atención de las SYSCALLS
 ;; -------------------------------------------------------------------------- ;;
-_isr33: 
+_isr66:
     pushad
     call software
     popad
@@ -121,5 +124,3 @@ proximo_reloj:
                 imprimir_texto_mp ebx, 1, 0x0f, 49, 79
                 popad
         ret
-        
-        
