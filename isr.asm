@@ -22,6 +22,7 @@ extern sched_proximo_indice
 extern tick
 extern keyword
 extern software
+extern print_interrupcion
 
 
 global _isr32
@@ -36,7 +37,9 @@ global _isr%1
 
 _isr%1:
     mov eax, %1
-    imprimir_texto_mp interrupcion, interrupcion_len, 0x07, 2, 0
+    push eax
+    call print_interrupcion
+    pop eax
     jmp $
 
 %endmacro
@@ -77,7 +80,6 @@ ISR 19
 _isr32:
     pushad
     call fin_intr_pic1
-    xchg bx,bx
     call proximo_reloj
     popad
     iret
@@ -85,7 +87,7 @@ _isr32:
 ;; Rutina de atención del TECLADO
 ;; -------------------------------------------------------------------------- ;;
 _isr33:
-    pushad
+    pushad  
     call fin_intr_pic1
     xor eax, eax
     in al, 0x60
@@ -99,7 +101,8 @@ _isr33:
 ;; -------------------------------------------------------------------------- ;;
 _isr66:
     pushad
-    call software
+    call fin_intr_pic1
+    mov eax, 0x42
     popad
     iret
 

@@ -32,6 +32,8 @@ void print_color(unsigned short color,  unsigned int x,  unsigned int xLim,  uns
 
 void paint_screen(unsigned short color);
 
+void print_interrupcion(unsigned int interrupcion);
+
 int video_cols();
 int video_fils();
 

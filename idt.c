@@ -79,7 +79,7 @@ void tick() {
 }
 
 void keyword(int scan_code) {
-    print_int(scan_code, 20, 20, 0x07);
+    print_int(scan_code, VIDEO_COLS-1, 0, 0x07);
 }
 
 void keyUp() {

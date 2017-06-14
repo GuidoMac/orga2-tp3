@@ -22,6 +22,8 @@ extern mmu_directorios
 extern mmu_proxima_pagina_fisica_libre
 extern mmu_mappear_pagina
 extern mmu_desmappear_pagina
+extern tss_inicializar
+extern tss_inicializar_idle
 global start
 
 
@@ -83,8 +85,8 @@ start:
     ; 0 a 1 va RPL (Requested Privileg Level) - 2 va (0 si es GDT - 1 si es LDT) - 3 a 15 Index
     ; Indice 8, TI 0, RPL 0,    0000000001000/000 en hexa = 0x0040
     ; Indice 9 , TI 0, RPL 0,   0000000001001/000 en hexa = 0x0048  -> Este es el de data, hay que mover ds ahi
-    ; Indice 10 , TI 0, RPL 3,  0000000001010/011 en hexa =
-    ; Indice 11 , TI 0, RPL 3,  0000000001011/011 en hexa =
+    ; Indice 10 , TI 0, RPL 3,  0000000001010/011 en hexa = 0x0053
+    ; Indice 11 , TI 0, RPL 3,  0000000001011/011 en hexa = 0x005B
     ; Indice 12 , TI 0, RPL 0,  0000000001100/000 en hexa = 0x0060 -> VIDEO
     mov ax, 0x48
     mov ds, ax
@@ -118,9 +120,9 @@ start:
     mov cr0, eax
 
     ; Inicializar tss
-
+    call tss_inicializar
     ; Inicializar tss de la tarea Idle
-
+    call tss_inicializar_idle
     ; Inicializar el scheduler
 
     ; Inicializar la IDT
@@ -137,6 +139,10 @@ start:
 
 
     ; Cargar tarea inicial
+    ; Indice 13 , TI 0, RPL 0,  0000000001101/000 en hexa = 0x0068 -> tss_inicial
+    
+    mov ax, 0x68
+    ltr ax
 
     ; Habilitar interrupciones
     ;int 13
@@ -146,7 +152,7 @@ start:
 
     push 0x70
     call paint_screen ;PINTAMOS LA PANTALLA DE VERDE
-    xchg bx, bx
+    
     ;PINTAMOS EL EXTREMO IZQUIERDO DE ROJO
     call video_fils
     push eax ; yLim
@@ -216,6 +222,7 @@ start:
     ;IMPRIMOS EL NOMBRE DEL EQUIPO
     call video_cols ; eax <- VIDEO_COLS
     sub eax, nombre_equipo_len ; calculamos el offset a derecha del texto a imprimir
+    sub eax, 5
     imprimir_texto_mp nombre_equipo, nombre_equipo_len, 0x05, 0, eax ; imprimos el texto con fondo verde y letra magenta
 
     ;PROBAR MMU
@@ -238,7 +245,9 @@ start:
 
 
     ; Saltar a la primera tarea: Idle
-
+    ; Indice 14 , TI 0, RPL 0,  0000000001110/000 en hexa = 0x0070 -> tss_idle
+    
+    jmp 0x70:0
     ; Ciclar infinitamente (por si algo sale mal...)
     mov eax, 0xFFFF
     mov ebx, 0xFFFF

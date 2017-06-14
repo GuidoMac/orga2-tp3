@@ -80,6 +80,28 @@ void paint_screen(unsigned short color) {
     print_color(color, 0,VIDEO_COLS, 0, VIDEO_FILS);
 }
 
+void print_interrupcion(unsigned int interrupcion) {
+    clean_screen();
+    paint_screen(0x40);
+    int i;
+    int j;
+    for (i = 0; i < VIDEO_COLS; i+= 7)
+    {
+        for (j = 0; j < VIDEO_FILS; j++)
+        {
+            if(j%2 == 0 && i%2 ==0){
+                print("Error", i , j, 0x8F);
+                print_int(interrupcion, i + 6, j, 0x8F);
+            } else {
+                print("Error", i , j, 0x0F);
+                print_int(interrupcion, i + 6, j, 0x0F);
+            }
+        }
+       
+    }
+    
+}
+
 
 int video_cols() {
     return VIDEO_COLS;
