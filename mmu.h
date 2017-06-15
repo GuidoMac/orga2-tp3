@@ -15,8 +15,8 @@
 
 #define INICIO_PAGINAS_LIBRES 0x100000;
 #define PAGE_SIZE 0x1000;
-#define PDE_INDEX(virtual) virtual >> 22
-#define PTE_INDEX(virtual) (virtual << 10) >> 22
+#define PDE_INDEX(virtual) (virtual >> 22)
+#define PTE_INDEX(virtual) ((virtual << 10) >> 22)
 #define PG_READ_WRITE 0x00000002
 #define PG_USER 0x00000004
 #define PG_PRESENT 0x00000001
@@ -61,11 +61,11 @@ void mmu_directorios();
 
 unsigned int mmu_proxima_pagina_fisica_libre();
 
-void mmu_mappear_pagina(unsigned int virtual, unsigned int dir_pd, unsigned int fisica);
+void mmu_mappear_pagina(unsigned int virtual, unsigned int dir_pd, unsigned int fisica, unsigned short r_w, unsigned short u_s);
 
 void mmu_desmappear_pagina(unsigned int virtual, unsigned int dir_pd);
 
-pde_t * mmu_inicializar_dir_zombi();
+pde_t * mmu_inicializar_dir_zombi(unsigned int posJug, unsigned int jugador);
 
 #endif	/* !__MMU_H__ */
 

@@ -36,6 +36,7 @@
 #define GDT_IDX_VIDEO_DESC      12
 #define GDT_IDX_TAREA_INICIAL	13
 #define GDT_IDX_TAREA_IDLE		14
+#define GDT_IDX_TAREA_ZOMBI		15
 
 /* Offsets en la gdt */
 /* -------------------------------------------------------------------------- */

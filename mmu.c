@@ -14,69 +14,47 @@ pde_t * mmu_inicializar_dir_zombi(unsigned int posJug, unsigned int jugador) {
 	int i;
 
 	for(i=0;i*0x1000<0x400000;i++) {
-		mmu_mappear_pagina(i*0x1000,pde,i*0x1000);
+		mmu_mappear_pagina(i*0x1000,(unsigned int)pde,i*0x1000, 0, 0);
 	}
 
 	/*
 	Funcion para 'ubicarlo en el mapa'
 	*/
 
-	if(jugador == 0){ //Jugador A
+/*	if(jugador == 0){ //Jugador A
 
 	} else { // Jugador B
-
-	}
-
+		//algo
+	}*/
+	return pde;
 }
 
 void mmu_inicializar_dir_kernel() {
 
-//	unsigned int* pepe =  (int*)(0x27000) 
-
-//pepe[0] = 0x00028003;
-
-
-
-
-	//directorio-> crear lista de tablas
-	//crear lista de paginas
-	pde_t* pde = (pde_t*) 0x27000;
+	pde_t * pde = (pde_t*) 0x27000;
 	int i;
-	pde[0].base = 0x28; // Base
-	pde[0].rw = 1; // Read/Write
+	for(i = 0; i < 1024 ; i++) {
+		pde[i].p = 0;
+	}
+	int ReadWrite = 1;
+	int UserSuper = 1;
+
+	//crea la primer entrada del directorio de tabla de paginas con una tabla de paginas en la direccion 0x28000
+	//la crea con privilegios de kernel y de lectura
+	pde[0].base = 0x28000 >> 12;
+	pde[0].rw = ReadWrite;
 	pde[0].p = 1;  // Present
-	pde[0].us = 1;
+	pde[0].us = UserSuper;
 	pde[0].pwt = 0;
 	pde[0].pcd = 0;
 	pde[0].a = 0;
 	pde[0].ign = 0;
 	pde[0].ps = 0;
-	for(i = 1; i < 0x1000; i++) {
-		pde[i].base = 0; // Base
-		pde[i].p = 0;
-		pde[i].rw = 0; // Read/Write
-		pde[i].us = 0;
-		pde[i].pwt = 0;
-		pde[i].pcd = 0;
-		pde[i].a = 0;
-		pde[i].ign = 0;
-		pde[i].ps = 0;
-	}
 
-	pte_t* pte = (pte_t*)(pde[0].base << 12);
-	//pte_t* pte = (pte_t*) 0x28000;
+	//Hace identity mapping entre 0x0 y 0x003FFFFF (Kernel + Area Libre)
 
-	for(i = 0; i < 0x1000; i++) {
-		pte[i].base = i;
-		pte[i].p = 1;
-		pte[i].rw = 1;
-		pte[i].us = 1;
-		pte[i].pwt = 0;
-		pte[i].pcd = 0;
-		pte[i].a = 0;
-		pte[i].d = 0;
-		pte[i].pat = 0;
-		pte[i].g = 0;
+	for(i = 0;i*0x1000<0x0400000; i++) {
+		mmu_mappear_pagina(i*0x1000,(unsigned int)pde,i*0x1000, ReadWrite, UserSuper);
 	}
 
 }
@@ -92,6 +70,52 @@ unsigned int mmu_proxima_pagina_fisica_libre() {
 	return pagina_libre;
 }
 
+
+void mmu_mappear_pagina(unsigned int virtual, unsigned int dir_pd, unsigned int fisica, unsigned short r_w, unsigned short u_s) {
+	//descomponer la direccion virtual en los 3 indices
+	//con la dir_pd y el indice, obtener el dir_td
+	//si el dir_td no existe, crearlo y setear el dir_pd para que conozca el nuevo dir_td
+	//con el dir_td y el indice, obtener el dir_pe
+	//completar el dir_pe con la dir fisica de parametro. salvo los ultimos 12 bits. fisica << 12;
+	//dir_pd = direccion del page directory
+	//dir_td = direccion del page table
+	//dir_pe = direccion del page table entry
+	pde_t * pd_table = (pde_t*) dir_pd;
+	unsigned int idx_pd_entry = PDE_INDEX(virtual);
+	unsigned int idx_pt_entry = PTE_INDEX(virtual);
+	pde_t pd_entry = pd_table[idx_pd_entry];
+	//pd_enty es el descriptor de la pagina que contiene la tabla de descriptores de paginas
+	if (pd_entry.p == 0) { 
+		//Si no esta presente en memoria. Es decir que no hay una pagina que contenga el directorio de paginas
+		//Hay que crearlo.
+		pte_t * p_table = (pte_t*) mmu_proxima_pagina_fisica_libre();
+		int i;
+		for(i = 0; i < 1024 ; i++) {
+			p_table[i].p = 0;
+		}
+		//creo la pagina con la tabla de paginas con todas las paginas no presentes.
+
+		pd_entry.base = (unsigned int)p_table >> 12;
+		pd_entry.p = 1; //present = 1 => tabla de paginas en memoria 
+		pd_entry.ps = 0; //page_size = 0 => paginas de 4KB
+		pd_entry.a = 0;; //accessed = 0 => no fue accedida
+		pd_entry.pcd = 0; // page cache disabled = 0 // Cacha Habilitado
+		pd_entry.pwt = 0; // page write through = 0 // Escribe Cache y Memoria en el mismo write
+		pd_entry.us = u_s; //recibe el parametro para saber si la pagina sera de usuario o kernel
+		pd_entry.rw = r_w; //recibe el parametro para saber si la pagina sera de escritura o lectura
+	}
+	pte_t * p_table = (pte_t*) ((unsigned int)(pd_entry.base << 12)); //recupero la tabla de paginas
+	p_table[idx_pt_entry].base = fisica >> 12; //le asigno los 20bits de la pagina fisica a acceder
+	p_table[idx_pt_entry].p = 1; //seteo en presente el p_table[idx_pt_entry]
+	p_table[idx_pt_entry].pat = 0; //no quiero PAT
+	p_table[idx_pt_entry].g = 0; //no es global
+	p_table[idx_pt_entry].d = 0; // no esta dirty
+	p_table[idx_pt_entry].a = 0; // no fue accedida
+	p_table[idx_pt_entry].us = u_s; 
+	p_table[idx_pt_entry].rw = r_w;
+}
+
+/*
 void mmu_mappear_pagina(unsigned int virtual, unsigned int dir_pd, unsigned int fisica) {
 	pde_t* pd = (pde_t*) dir_pd;
 	// TO-DO: MACRO
@@ -102,10 +126,10 @@ void mmu_mappear_pagina(unsigned int virtual, unsigned int dir_pd, unsigned int 
 		pd[indice_directorio].p = 1;
 	}
 	pte_t* pte = (pte_t*)(pd[indice_directorio].base << 12);
-	pte[indice_tabla]  = fisica >> 12;	
+	pte[indice_tabla].base  = fisica >> 12;	
 	
 }
-
+*/
 void mmu_desmappear_pagina(unsigned int virtual, unsigned int dir_pd) {
 	pde_t* pd = (pde_t*) dir_pd;
 	unsigned int indice_directorio = PDE_INDEX(virtual);

@@ -43,7 +43,7 @@ void tss_inicializar_zombi() {
     tss_zombi.edx = 0;
     tss_zombi.ebx = 0;
 
-    unsigned int pila = mmu_proxima_pagina_fisica_libre();
+    //unsigned int pila = mmu_proxima_pagina_fisica_libre();
     tss_zombi.esp = 0x11000;
     tss_zombi.ebp = 0x11000;
 
@@ -66,7 +66,7 @@ void tss_inicializar_zombi() {
     tss_zombi.dtrap = 0;
     tss_zombi.iomap = 0xffff;
 
-    tss_zombi.cr3 = mmu_inicializar_dir_zombi();
+    tss_zombi.cr3 = (unsigned int) mmu_inicializar_dir_zombi(0,0);
 
     gdt[GDT_IDX_TAREA_ZOMBI].base_0_15 = (unsigned short) (int)&tss_zombi;
     gdt[GDT_IDX_TAREA_ZOMBI].base_23_16 = (unsigned char) ((int)&tss_zombi >> 16); 

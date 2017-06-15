@@ -113,6 +113,7 @@ start:
     ; Cargar directorio de paginas
     ;call mmu_directorios
     ; Habilitar paginacion
+    xchg bx, bx
     mov eax, 0x27000
     mov cr3, eax
     mov eax, cr0
