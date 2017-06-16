@@ -8,34 +8,77 @@
 #include "mmu.h"
 unsigned int proxima_pagina_libre;
 
-
-pde_t * mmu_inicializar_dir_zombi(unsigned int posJug, unsigned int jugador) {
-	pde_t * pde = (pde_t *) mmu_proxima_pagina_fisica_libre();
+void copiar(int * src, int * dst, unsigned int tope) {
 	int i;
+	for(i = 0; i<tope; i++) {
+		*dst = *src;
+		src++;
+		dst++;	
+	}
+}
 
+unsigned int calcOffset(unsigned int x, unsigned int y, int jugador, unsigned int pagina) {
+	unsigned int offsetMapa = 0x400000;
+	//jugador es 1 o -1 . Segun si es el jugador de la derecha(1) o el de la izquierda(-1)
+	if(jugador == 1) {
+		offsetMapa += (y*78 + x) << 12;	
+	} else {
+		offsetMapa += (y*78 - x) << 12;	
+	}
+	switch(pagina) {
+		case 1:	
+			return offsetMapa;
+		case 2: 
+			return offsetMapa + ((1*jugador)<<12);
+		case 3: 
+			return offsetMapa + ((79*jugador)<<12); //79 porque avanza una fila y 1 posicion
+		case 4:
+			return offsetMapa - ((77*jugador)<<12);
+		case 5:
+			return offsetMapa + ((78*jugador)<<12);
+		case 6:
+			return offsetMapa - ((78*jugador)<<12);
+		case 7:
+			return offsetMapa - ((1*jugador)<<12);
+		case 8:
+			return offsetMapa - ((79*jugador)<<12);
+		case 9:
+			return offsetMapa + ((77*jugador)<<12);
+	}
+	return offsetMapa;	
+}
+
+
+void mmu_mappear_zombi(unsigned int dir_pde, unsigned int x, unsigned int y, int jugador) {
+	unsigned int i;
+	for(i=0x1; i < 0xa; i++){
+		mmu_mappear_pagina(0x08000000+(i-0x1),dir_pde,calcOffset(x,y,jugador,i),0,0);
+	}	
+}
+
+pde_t * mmu_inicializar_dir_zombi(unsigned int y, int jugador) {
+	pde_t * pde = crearPDE(mmu_proxima_pagina_fisica_libre());
+	unsigned int i;
 	for(i=0;i*0x1000<0x400000;i++) {
 		mmu_mappear_pagina(i*0x1000,(unsigned int)pde,i*0x1000, 0, 0);
 	}
 
-	/*
-	Funcion para 'ubicarlo en el mapa'
-	*/
+	mmu_mappear_zombi((unsigned int)pde, 1, y, jugador);
+	return pde;
+}
 
-/*	if(jugador == 0){ //Jugador A
-
-	} else { // Jugador B
-		//algo
-	}*/
+pde_t * crearPDE(unsigned int dirFisica) {
+	pde_t * pde = (pde_t*) dirFisica;
+	int i;
+	for(i = 0; i < 1024 ; i++) {
+		pde[i].p = 0;
+	}
 	return pde;
 }
 
 void mmu_inicializar_dir_kernel() {
 
-	pde_t * pde = (pde_t*) 0x27000;
-	int i;
-	for(i = 0; i < 1024 ; i++) {
-		pde[i].p = 0;
-	}
+	pde_t * pde = crearPDE(0x27000);
 	int ReadWrite = 1;
 	int UserSuper = 1;
 
@@ -52,13 +95,12 @@ void mmu_inicializar_dir_kernel() {
 	pde[0].ps = 0;
 
 	//Hace identity mapping entre 0x0 y 0x003FFFFF (Kernel + Area Libre)
-
+	int i;
 	for(i = 0;i*0x1000<0x0400000; i++) {
 		mmu_mappear_pagina(i*0x1000,(unsigned int)pde,i*0x1000, ReadWrite, UserSuper);
 	}
 
 }
-
 
 void mmu_inicializar() {
 	proxima_pagina_libre = INICIO_PAGINAS_LIBRES;
@@ -69,7 +111,6 @@ unsigned int mmu_proxima_pagina_fisica_libre() {
 	proxima_pagina_libre += PAGE_SIZE;
 	return pagina_libre;
 }
-
 
 void mmu_mappear_pagina(unsigned int virtual, unsigned int dir_pd, unsigned int fisica, unsigned short r_w, unsigned short u_s) {
 	//descomponer la direccion virtual en los 3 indices
@@ -113,23 +154,9 @@ void mmu_mappear_pagina(unsigned int virtual, unsigned int dir_pd, unsigned int 
 	p_table[idx_pt_entry].a = 0; // no fue accedida
 	p_table[idx_pt_entry].us = u_s; 
 	p_table[idx_pt_entry].rw = r_w;
+	tlbflush();
 }
 
-/*
-void mmu_mappear_pagina(unsigned int virtual, unsigned int dir_pd, unsigned int fisica) {
-	pde_t* pd = (pde_t*) dir_pd;
-	// TO-DO: MACRO
-	unsigned int indice_directorio = PDE_INDEX(virtual);
-	unsigned int indice_tabla = PTE_INDEX(virtual);
-	if (pd[indice_directorio].p == 0) {
-		pd[indice_directorio].base = mmu_proxima_pagina_fisica_libre() >> 12;
-		pd[indice_directorio].p = 1;
-	}
-	pte_t* pte = (pte_t*)(pd[indice_directorio].base << 12);
-	pte[indice_tabla].base  = fisica >> 12;	
-	
-}
-*/
 void mmu_desmappear_pagina(unsigned int virtual, unsigned int dir_pd) {
 	pde_t* pd = (pde_t*) dir_pd;
 	unsigned int indice_directorio = PDE_INDEX(virtual);

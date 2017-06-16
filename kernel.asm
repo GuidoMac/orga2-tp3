@@ -24,6 +24,7 @@ extern mmu_mappear_pagina
 extern mmu_desmappear_pagina
 extern tss_inicializar
 extern tss_inicializar_idle
+extern inicializarTablero
 global start
 
 
@@ -113,7 +114,6 @@ start:
     ; Cargar directorio de paginas
     ;call mmu_directorios
     ; Habilitar paginacion
-    xchg bx, bx
     mov eax, 0x27000
     mov cr3, eax
     mov eax, cr0
@@ -122,6 +122,8 @@ start:
 
     ; Inicializar tss
     call tss_inicializar
+    call tss_zombies
+    call mapear_tss_zombies
     ; Inicializar tss de la tarea Idle
     call tss_inicializar_idle
     ; Inicializar el scheduler
@@ -154,71 +156,7 @@ start:
     push 0x70
     call paint_screen ;PINTAMOS LA PANTALLA DE VERDE
     
-    ;PINTAMOS EL EXTREMO IZQUIERDO DE ROJO
-    call video_fils
-    push eax ; yLim
-    push 0 ; y
-    push 1 ; xLim
-    push 0 ; x
-    push 0x40 ;color
-    call print_color
-
-    ;PINTAMOS EL EXTREMO DERECHO DE AZUL
-    call video_fils
-    push eax ; yLim
-    push 0 ; y
-    call video_cols
-    push eax; xLim
-    sub eax, 1
-    push eax; x
-    push 0x10 ;color
-    call print_color
-
-
-    ;PINTAMOS EL EXTREMO SUPERIOR DE NEGRO
-    push 1 ; yLim
-    push 0 ; y
-    call video_cols
-    push eax ; xLim
-    push 0 ; x
-    push 0x60 ;color
-    call print_color
-
-    ;PINTAMOS EL EXTREMO INFERIOR DE NEGRO 5 PIXELS
-    call video_fils
-    push eax ; yLim
-    sub eax, 5
-    push eax ; yLim
-    call video_cols
-    push eax; xLim
-    push 0; x
-    push 0x60; color
-    call print_color
-
-    call video_fils
-    push eax ; yLim
-    sub eax, 5
-    push eax ; yLim
-    call video_cols
-    shr eax, 1
-    push eax; xLim
-    sub eax, 5
-    push eax; x
-    push 0x40; color
-    call print_color
-
-    call video_fils
-    push eax ; yLim
-    sub eax, 5
-    push eax ; yLim
-    call video_cols
-    shr eax, 1
-    add eax, 5
-    push eax; xLim
-    sub eax, 5
-    push eax; x
-    push 0x10; color
-    call print_color
+    call inicializarTablero
 
     ;IMPRIMOS EL NOMBRE DEL EQUIPO
     call video_cols ; eax <- VIDEO_COLS

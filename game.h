@@ -11,6 +11,14 @@
 #include "screen.h"
 #include "mmu.h"
 
+typedef struct jugador_t {
+    unsigned int x;
+    unsigned int y;
+    int direccion;
+    char * currentZombie;
+    unsigned short color_attr;
+} __attribute__((__packed__)) jugador;
+
 typedef enum direccion_e { IZQ = 0xAAA, DER = 0x441, ADE = 0x83D, ATR = 0x732 } direccion;
 
 void game_jugador_mover(unsigned int jugador, unsigned int value);
@@ -19,5 +27,9 @@ void game_lanzar_zombi(unsigned int jugador);
 
 void game_move_current_zombi(direccion dir);
 
+void inicializarTablero();
 
+void handle_key_press(int scan_code);
+
+void print_player(jugador j);
 #endif  /* !__GAME_H__ */

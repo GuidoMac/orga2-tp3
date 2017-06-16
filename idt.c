@@ -9,8 +9,10 @@
 #include "idt.h"
 #include "isr.h"
 #include "screen.h"
-
+#include "game.h"
 #include "tss.h"
+
+int prev_scan_code;
 
 idt_entry idt[255] = { };
 
@@ -78,8 +80,14 @@ void tick() {
 
 }
 
+void handle_Lshift() {
+
+}
+
 void keyword(int scan_code) {
-    print_int(scan_code, VIDEO_COLS-1, 0, 0x07);
+    print_hex(scan_code,3, VIDEO_COLS-3, VIDEO_COLS, 0x07);
+    if (prev_scan_code == scan_code ) return;
+    handle_key_press(scan_code);
 }
 
 void keyUp() {

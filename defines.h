@@ -37,7 +37,22 @@
 #define GDT_IDX_TAREA_INICIAL	13
 #define GDT_IDX_TAREA_IDLE		14
 #define GDT_IDX_TAREA_ZOMBI		15
-
+#define GDT_IDX_TAREA_ZOMBI1_A	16
+#define GDT_IDX_TAREA_ZOMBI2_A	17
+#define GDT_IDX_TAREA_ZOMBI3_A	18
+#define GDT_IDX_TAREA_ZOMBI4_A	19
+#define GDT_IDX_TAREA_ZOMBI5_A	20
+#define GDT_IDX_TAREA_ZOMBI6_A	21
+#define GDT_IDX_TAREA_ZOMBI7_A	22
+#define GDT_IDX_TAREA_ZOMBI8_A	23
+#define GDT_IDX_TAREA_ZOMBI1_B	24
+#define GDT_IDX_TAREA_ZOMBI2_B	25
+#define GDT_IDX_TAREA_ZOMBI3_B	26
+#define GDT_IDX_TAREA_ZOMBI4_B	27
+#define GDT_IDX_TAREA_ZOMBI5_B	28
+#define GDT_IDX_TAREA_ZOMBI6_B	29
+#define GDT_IDX_TAREA_ZOMBI7_B	30
+#define GDT_IDX_TAREA_ZOMBI8_B	31
 /* Offsets en la gdt */
 /* -------------------------------------------------------------------------- */
 #define GDT_OFF_NULL_DESC           (GDT_IDX_NULL_DESC      << 3)
