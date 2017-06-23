@@ -23,12 +23,12 @@ void tss_inicializar() {
     gdt[GDT_IDX_TAREA_INICIAL].base_31_24 = (unsigned char) ((int)&tss_inicial >> 24);  
 }
 
-void tss_inicializar_zombi() {
-
+void crear_nuevo_zombi() {
     tss_zombi.ptl = 0;
     tss_zombi.unused0 = 0;
-    tss_zombi.esp0 = 0;
-    tss_zombi.ss0 = 0;
+    unsigned int pila0 = mmu_proxima_pagina_fisica_libre() + 0x1000; // Al fondo de la pagina libre porque es el stack
+    tss_zombi.esp0 = pila0;//configurar esto con nueva pagina fisica
+    tss_zombi.ss0 = 0x48;
     tss_zombi.unused1 = 0;
     tss_zombi.esp1 = 0;
     tss_zombi.ss1 = 0;
@@ -36,41 +36,46 @@ void tss_inicializar_zombi() {
     tss_zombi.esp2 = 0;
     tss_zombi.ss2 = 0;
     tss_zombi.unused3 = 0;
-    tss_zombi.eip = 0x00010000;
+    tss_zombi.eip = 0x8000000;//0x8000000
     tss_zombi.eflags = 0x00000202;
     tss_zombi.eax = 0;
     tss_zombi.ecx = 0;
     tss_zombi.edx = 0;
     tss_zombi.ebx = 0;
 
-    //unsigned int pila = mmu_proxima_pagina_fisica_libre();
-    tss_zombi.esp = 0x11000;
-    tss_zombi.ebp = 0x11000;
+    
+    tss_zombi.esp = 0x8001000; //Mover despues del CR3
+    tss_zombi.ebp = 0x8001000;
 
     tss_zombi.esi = 0;
     tss_zombi.edi = 0;
-    tss_zombi.es = 0x48;
+    tss_zombi.es = 0x5B;//mal
     tss_zombi.unused4 = 0;
-    tss_zombi.cs = 0x40;
+    tss_zombi.cs = 0x53;
     tss_zombi.unused5 = 0;
-    tss_zombi.ss = 0x48;
+    tss_zombi.ss = 0x5B;
     tss_zombi.unused6 = 0;
-    tss_zombi.ds = 0x48;
+    tss_zombi.ds = 0x5B;
     tss_zombi.unused7 = 0;
     tss_zombi.fs = 0x60;
     tss_zombi.unused8 = 0;
-    tss_zombi.gs = 0x48;
+    tss_zombi.gs = 0x5B;
     tss_zombi.unused9 = 0;
     tss_zombi.ldt = 0;
     tss_zombi.unused10 = 0;
     tss_zombi.dtrap = 0;
     tss_zombi.iomap = 0xffff;
+} 
 
-    tss_zombi.cr3 = (unsigned int) mmu_inicializar_dir_zombi(0,0);
+void tss_inicializar_zombi() {
 
-    gdt[GDT_IDX_TAREA_ZOMBI].base_0_15 = (unsigned short) (int)&tss_zombi;
-    gdt[GDT_IDX_TAREA_ZOMBI].base_23_16 = (unsigned char) ((int)&tss_zombi >> 16); 
-    gdt[GDT_IDX_TAREA_ZOMBI].base_31_24 = (unsigned char) ((int)&tss_zombi >> 24);  
+    crear_nuevo_zombi();
+
+    tss_zombi.cr3 = (unsigned int) mmu_inicializar_dir_zombi(0,1);
+
+    gdt[GDT_IDX_TAREA_ZOMBI1_A].base_0_15 = (unsigned short) (int)&tss_zombi;
+    gdt[GDT_IDX_TAREA_ZOMBI1_A].base_23_16 = (unsigned char) ((int)&tss_zombi >> 16); 
+    gdt[GDT_IDX_TAREA_ZOMBI1_A].base_31_24 = (unsigned char) ((int)&tss_zombi >> 24);
 }
 
 void tss_inicializar_idle() {

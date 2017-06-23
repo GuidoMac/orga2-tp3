@@ -24,6 +24,7 @@ extern mmu_mappear_pagina
 extern mmu_desmappear_pagina
 extern tss_inicializar
 extern tss_inicializar_idle
+extern tss_inicializar_zombi
 extern inicializarTablero
 global start
 
@@ -84,10 +85,10 @@ start:
     ; Establecer selectores de segmentos
     xor eax, eax
     ; 0 a 1 va RPL (Requested Privileg Level) - 2 va (0 si es GDT - 1 si es LDT) - 3 a 15 Index
-    ; Indice 8, TI 0, RPL 0,    0000000001000/000 en hexa = 0x0040
-    ; Indice 9 , TI 0, RPL 0,   0000000001001/000 en hexa = 0x0048  -> Este es el de data, hay que mover ds ahi
-    ; Indice 10 , TI 0, RPL 3,  0000000001010/011 en hexa = 0x0053
-    ; Indice 11 , TI 0, RPL 3,  0000000001011/011 en hexa = 0x005B
+    ; CS_0 Indice 8, TI 0, RPL 0,    0000000001000/000 en hexa = 0x0040
+    ; DS_0 Indice 9 , TI 0, RPL 0,   0000000001001/000 en hexa = 0x0048  -> Este es el de data, hay que mover ds ahi
+    ; CS_3 Indice 10 , TI 0, RPL 3,  0000000001010/011 en hexa = 0x0053
+    ; DS_3 Indice 11 , TI 0, RPL 3,  0000000001011/011 en hexa = 0x005B
     ; Indice 12 , TI 0, RPL 0,  0000000001100/000 en hexa = 0x0060 -> VIDEO
     mov ax, 0x48
     mov ds, ax
@@ -122,10 +123,13 @@ start:
 
     ; Inicializar tss
     call tss_inicializar
-    call tss_zombies
-    call mapear_tss_zombies
+    ;call tss_zombies
+    ;call mapear_tss_zombies
     ; Inicializar tss de la tarea Idle
     call tss_inicializar_idle
+    
+    call tss_inicializar_zombi
+    
     ; Inicializar el scheduler
 
     ; Inicializar la IDT
@@ -185,8 +189,11 @@ start:
 
     ; Saltar a la primera tarea: Idle
     ; Indice 14 , TI 0, RPL 0,  0000000001110/000 en hexa = 0x0070 -> tss_idle
+    ;jmp 0x70:0 ;saltando a idle
+    ; Indice 16 , TI 0, RPL 0,  0000000010000/011 en hexa = 0x0103 -> tss_zombi1_A
+    xchg bx, bx
+    jmp 0x103:0 ;saltando a la tarea zombie 1 a
     
-    jmp 0x70:0
     ; Ciclar infinitamente (por si algo sale mal...)
     mov eax, 0xFFFF
     mov ebx, 0xFFFF

@@ -67,7 +67,7 @@ void mmu_desmappear_pagina(unsigned int virtual, unsigned int dir_pd);
 
 pde_t * mmu_inicializar_dir_zombi(unsigned int y, int jugador);
 
-pde_t * crearPDE(unsigned int dir_fisica);
+pde_t * crearPDE(unsigned int dirFisica, int r_w, int u_s);
 
 void mmu_mappear_zombi(unsigned int dir_pde, unsigned int x, unsigned int y, int jugador);
 

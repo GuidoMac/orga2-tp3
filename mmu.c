@@ -6,6 +6,7 @@
 */
 
 #include "mmu.h"
+#include "i386.h"
 unsigned int proxima_pagina_libre;
 
 void copiar(int * src, int * dst, unsigned int tope) {
@@ -50,49 +51,79 @@ unsigned int calcOffset(unsigned int x, unsigned int y, int jugador, unsigned in
 
 
 void mmu_mappear_zombi(unsigned int dir_pde, unsigned int x, unsigned int y, int jugador) {
-	unsigned int i;
+	/*unsigned int i;
 	for(i=0x1; i < 0xa; i++){
-		mmu_mappear_pagina(0x08000000+(i-0x1),dir_pde,calcOffset(x,y,jugador,i),0,0);
-	}	
+		mmu_mappear_pagina(0x08000000+(i-0x1),dir_pde,calcOffset(x,y,jugador,i),1,1);
+	}*/
+	mmu_mappear_pagina(0x08000000, dir_pde, 0x401000,1,1);
+	mmu_mappear_pagina(0x08001000, dir_pde, 0x402000,1,1);
+	mmu_mappear_pagina(0x08002000, dir_pde, 0x403000,1,1);
+	mmu_mappear_pagina(0x08003000, dir_pde, 0x404000,1,1);
+	mmu_mappear_pagina(0x08004000, dir_pde, 0x405000,1,1);
+	mmu_mappear_pagina(0x08005000, dir_pde, 0x406000,1,1);
+	mmu_mappear_pagina(0x08006000, dir_pde, 0x407000,1,1);
+	mmu_mappear_pagina(0x08007000, dir_pde, 0x408000,1,1);
+	mmu_mappear_pagina(0x08008000, dir_pde, 0x409000,1,1);
+
+	//Esto va a la interrupcion
+	int * src = (int*)0x10000;
+	//int * dst = (int*)calcOffset(x,y,jugador,1);
+	int * dst = (int*)0x401000;
+	breakpoint();
+    mmu_mappear_pagina((unsigned int) dst, 0x27000,(unsigned int) dst, 1,1);
+	
+	copiar(src, dst, 0x1000);
+	//mmu_desmappear_pagina((unsigned int) dst, dir_pde);
 }
 
 pde_t * mmu_inicializar_dir_zombi(unsigned int y, int jugador) {
-	pde_t * pde = crearPDE(mmu_proxima_pagina_fisica_libre());
+	
+	int ReadWrite = 1;
+	int UserSuper = 0;
+
+	pde_t * pde = crearPDE(mmu_proxima_pagina_fisica_libre(), ReadWrite, UserSuper);
+	pde[0].base = mmu_proxima_pagina_fisica_libre() >> 12;
+
 	unsigned int i;
 	for(i=0;i*0x1000<0x400000;i++) {
-		mmu_mappear_pagina(i*0x1000,(unsigned int)pde,i*0x1000, 0, 0);
+		mmu_mappear_pagina(i*0x1000,(unsigned int)pde,i*0x1000, ReadWrite, UserSuper);
 	}
 
 	mmu_mappear_zombi((unsigned int)pde, 1, y, jugador);
 	return pde;
 }
 
-pde_t * crearPDE(unsigned int dirFisica) {
+pde_t * crearPDE(unsigned int dirFisica, int r_w, int u_s) {
 	pde_t * pde = (pde_t*) dirFisica;
 	int i;
+
 	for(i = 0; i < 1024 ; i++) {
 		pde[i].p = 0;
 	}
-	return pde;
-}
 
-void mmu_inicializar_dir_kernel() {
-
-	pde_t * pde = crearPDE(0x27000);
-	int ReadWrite = 1;
-	int UserSuper = 1;
-
-	//crea la primer entrada del directorio de tabla de paginas con una tabla de paginas en la direccion 0x28000
-	//la crea con privilegios de kernel y de lectura
-	pde[0].base = 0x28000 >> 12;
-	pde[0].rw = ReadWrite;
+	//pde[0].base = mmu_proxima_pagina_fisica_libre() >> 12;
+	pde[0].rw = r_w;
 	pde[0].p = 1;  // Present
-	pde[0].us = UserSuper;
+	pde[0].us = u_s;
 	pde[0].pwt = 0;
 	pde[0].pcd = 0;
 	pde[0].a = 0;
 	pde[0].ign = 0;
 	pde[0].ps = 0;
+
+	return pde;
+}
+
+void mmu_inicializar_dir_kernel() {
+
+	int ReadWrite = 1;
+	int UserSuper = 1;
+	pde_t * pde = crearPDE(0x27000, ReadWrite, UserSuper);
+
+	//crea la primer entrada del directorio de tabla de paginas con una tabla de paginas en la direccion 0x28000
+	//la crea con privilegios de kernel y de lectura
+	pde[0].base = 0x28000 >> 12;
+
 
 	//Hace identity mapping entre 0x0 y 0x003FFFFF (Kernel + Area Libre)
 	int i;
