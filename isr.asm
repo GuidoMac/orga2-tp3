@@ -27,7 +27,7 @@ extern print_interrupcion
 
 global _isr32
 global _isr33
-global _isr66
+global _isr46
 ;;
 ;; Definición de MACROS
 ;; -------------------------------------------------------------------------- ;;
@@ -99,7 +99,7 @@ _isr33:
 ;;
 ;; Rutinas de atención de las SYSCALLS
 ;; -------------------------------------------------------------------------- ;;
-_isr66:
+_isr46:
     pushad
     call fin_intr_pic1
     mov eax, 0x42
